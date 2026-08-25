@@ -808,6 +808,14 @@
       loop:
         - 'ansible-test-option'
 
+    - name: Cleanup Router Advertisements
+      oxlorg.opnsense.radvd:
+        interface: "{{ item }}"
+        state: 'absent'
+        reload: false
+      loop:
+        - 'lan'
+
     - name: Cleanup Kea DDNS
       oxlorg.opnsense.kea_ddns:
         enabled: false
