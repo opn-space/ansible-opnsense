@@ -131,6 +131,18 @@ def run_module():
             result['changed'] = True
             result['response'] = single_post(**req, headers=p['headers'])
 
+            if isinstance(result['response'], dict) and result['response'].get('in_use', False):
+                # OPNsense refused the call because the item it names is still
+                # referenced (safe-delete). Nothing happened, so 'changed' would
+                # be a lie - and this module is the only thing in the chain that
+                # can say so.
+                result['changed'] = False
+                detail = result['response'].get('errorMessage', 'no detail returned by the API')
+                module.fail_json(
+                    msg=f"API call '{m}/{c}/{cmd}' was refused because the item is still "
+                        f"referenced: {str(detail).replace('<br/>', '; ')}",
+                    **result,
+                )
 
     module.exit_json(**result)
 
