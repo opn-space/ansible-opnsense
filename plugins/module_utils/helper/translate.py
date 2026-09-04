@@ -296,9 +296,21 @@ class SimplifyTranslate:
                 translated[field_ansible] = existing[field_api]
 
         # passthrough for fields that do not have to be translated and should not be "ignored"
+        #
+        # A field the loop above already produced is never overwritten here. The
+        # two loops can collide: a module may translate an ansible field-name
+        # from one API field while the API *also* returns a field of its own
+        # under that same name, and then the passthrough would silently replace
+        # the translated value with the unrelated one. OPNsense 26.7 does
+        # exactly that for WireGuard servers - Wireguard/Server gained an
+        # 'allowed_ips' field, which is not the 'tunneladdress' the module maps
+        # onto its own 'allowed_ips' - so every server read back an empty
+        # allowed_ips and was rewritten on every run. An explicit translation is
+        # the more specific statement of intent, so it wins.
         translate_fields = self._fields_translate.values()
         for field in existing:
-            if field not in translate_fields and field not in self._fields_ignore:
+            if field not in translate_fields and field not in self._fields_ignore \
+                    and field not in translated:
                 translated[field] = existing[field]
 
         return translated
