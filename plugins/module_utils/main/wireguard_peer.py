@@ -56,6 +56,7 @@ class Peer(BaseModule):
         self.peer = {}
         self.existing_servers = None
         self.existing_peers = None
+        self.link_servers = True
 
     def check(self) -> None:
         if self.p['state'] == 'present':
@@ -70,8 +71,8 @@ class Peer(BaseModule):
                     "of the peer to create!"
                 )
 
-        link_servers = not is_unset(self.p['servers']) or self.p['link_servers']
-        if not link_servers:
+        self.link_servers = not is_unset(self.p['servers']) or self.p['link_servers']
+        if not self.link_servers:
             self.FIELDS_CHANGE.remove('servers')
             self.FIELDS_DIFF_EXCLUDE.append('servers')
 
@@ -94,7 +95,7 @@ class Peer(BaseModule):
             self.p['servers'] = self._translate_servers(self.p['servers'])
 
         if self.exists:
-            if link_servers:
+            if self.link_servers:
                 self.peer['servers'] = self._translate_servers(self.r['diff']['before']['servers'])
 
             self.r['diff']['before'] = self.build_diff(data=self.peer)
@@ -129,3 +130,12 @@ class Peer(BaseModule):
                 servers.append(srv)
 
         return servers
+
+    def build_request(self) -> dict:
+        # The mirror of wireguard_server.build_request(): 'servers' is the same
+        # relation seen from the peer, and link_servers=false means the caller
+        # authors it from the server side. Posting the module's own empty value
+        # would detach the peer from every server it is attached to.
+        return self._base_build_request(
+            ignore_fields=[] if self.link_servers else ['servers'],
+        )
