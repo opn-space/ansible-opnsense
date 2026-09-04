@@ -1,3 +1,5 @@
+from re import compile as re_compile, IGNORECASE
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
@@ -9,15 +11,43 @@ from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.rule import
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.module import BaseModule
 
 
+# Synthetic outbound NAT rules are reported by search_rule with an identifier
+# that is not a uuid - 'automatic_wan', 'automatic_isakmp_wan'. They do not exist
+# in the configuration and cannot be set or deleted.
+SYNTHETIC_RULE_ID = re_compile(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    flags=IGNORECASE,
+)
+
+
 class SNat(BaseModule):
+    # OPNsense 26.7 stopped returning the rules from firewall/source_nat/get.
+    #
+    # SourceNatController gained an explicit getAction() that returns only the
+    # 'general' node; before that it inherited ApiMutableModelControllerBase's,
+    # which returned the whole model - so 'filter.snatrules.rule' resolved and
+    # this module read the ruleset from one call. On 26.7 that path is absent and
+    # the module fails with "Got invalid API_KEY_PATH: 'filter.snatrules.rule'".
+    #
+    # The rules moved to searchRuleAction/getRuleAction, which is the shape the
+    # rest of the collection already calls the "new OPNsense API": a search for
+    # the list, a detail call per entry. API_KEY_PATH becomes 'rule' because
+    # getRuleAction returns getBase("rule", "snatrules.rule", $uuid), i.e.
+    # {"rule": {...}}. The write path is unaffected - the request payload is
+    # wrapped in the last segment of API_KEY_PATH, which was 'rule' before and
+    # is 'rule' now.
+    #
+    # This is compatible with 26.1: searchRuleAction and getRuleAction exist
+    # there too, and are what the GUI has always used.
     CMDS = {
         'add': 'add_rule',
         'del': 'del_rule',
         'set': 'set_rule',
-        'search': 'get',
+        'search': 'search_rule',
+        'detail': 'get_rule',
         'toggle': 'toggle_rule',
     }
-    API_KEY_PATH = 'filter.snatrules.rule'
+    API_KEY_PATH = 'rule'
     API_MOD = 'firewall'
     API_CONT = 'source_nat'
     FIELDS_CHANGE = [
@@ -49,6 +79,19 @@ class SNat(BaseModule):
     def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
         BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.rule = {}
+
+    def api_search_post(self, cnf: dict, data: dict = None) -> list:
+        # Drop the synthetic rules OPNsense adds to searchRuleAction's output.
+        #
+        # With snat_mode 'automatic' or 'hybrid' the controller appends
+        # getAutomaticOutboundNatRules() to the configured ones. Those entries
+        # are display-only: getRuleAction cannot resolve their identifier, and a
+        # declarative caller that treated them as existing rules would try to
+        # delete them on every run.
+        return [
+            entry for entry in super().api_search_post(cnf=cnf, data=data)
+            if SYNTHETIC_RULE_ID.match(str(entry.get('uuid', '')))
+        ]
 
     def check(self) -> None:
         if self.p['state'] == 'present':
