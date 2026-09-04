@@ -59,6 +59,7 @@ class Server(BaseModule):
         self.server = {}
         self.existing_peers = None
         self.existing_vips = {}
+        self.link_peers = True
 
     def check(self) -> None:
         if self.p['state'] == 'present':
@@ -78,8 +79,8 @@ class Server(BaseModule):
                     "You need to provide a 'private_key'!"
                 )
 
-        link_peers = not is_unset(self.p['peers']) or self.p['link_peers']
-        if not link_peers:
+        self.link_peers = not is_unset(self.p['peers']) or self.p['link_peers']
+        if not self.link_peers:
             self.FIELDS_CHANGE.remove('peers')
             self.FIELDS_DIFF_EXCLUDE.append('peers')
 
@@ -101,7 +102,7 @@ class Server(BaseModule):
                 self.p['private_key'] = self.server['private_key']
 
         if self.p['state'] == 'present':
-            if link_peers:
+            if self.link_peers:
                 self.p['peers'] = self._find_peers()
 
             if not is_unset(self.p['vip']):
@@ -162,3 +163,20 @@ class Server(BaseModule):
             })[self.API_KEY][self.FIELDS_TRANSLATE['vip']]
 
         return raw
+
+    def build_request(self) -> dict:
+        # peers is a reverse relation: OPNsense keeps the membership on the
+        # server, but link_peers=false means the caller authors it from the peer
+        # side instead. It is already out of FIELDS_CHANGE and out of the diff,
+        # but it stayed in FIELDS_ALL - which is what builds the payload - so any
+        # update to an unrelated field posted 'peers' as the module's own empty
+        # value and unlinked every peer attached to the server. Silently: the
+        # peer module then re-linked on its next run, so the damage only showed
+        # as a converge that never settled.
+        #
+        # Leaving the field out of the payload preserves what the appliance has;
+        # verified on OPNsense 26.7.3_11, where set_server without 'peers' keeps
+        # the existing membership.
+        return self._base_build_request(
+            ignore_fields=[] if self.link_peers else ['peers'],
+        )
