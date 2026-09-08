@@ -41,6 +41,7 @@ TARGETS = [
     'acme_validation', 'acme_action', 'acme_certificate', 'postfix_general', 'postfix_domain', 'postfix_recipient',
     'postfix_recipientbcc', 'postfix_sender', 'postfix_senderbcc', 'postfix_sendercanonical', 'postfix_headercheck',
     'postfix_address', 'dhcp_subnet', 'dhcp_general', 'kea_dhcp4_option', 'kea_ddns', 'interface_gre',
+    'dhcp_ha', 'dhcp_ha_peer',
     'nat_one_to_one', 'nat_source',
     'nat_destination',
     'ipsec_manual_spd', 'hasync_general', 'snapshot', 'frr_bgp_redistribution', 'frr_ospf_redistribution',
@@ -478,6 +479,14 @@ def run_module():
         elif target == 'dhcp_subnet':
             from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.dhcp_subnet_v4 import \
                 SubnetV4 as Target_Obj
+
+        elif target == 'dhcp_ha':
+            from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.dhcp_ha import \
+                HA as Target_Obj
+
+        elif target == 'dhcp_ha_peer':
+            from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.dhcp_ha_peer import \
+                HAPeer as Target_Obj
 
         elif target == 'kea_dhcp4_option':
             from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.kea_dhcp4_option import \
