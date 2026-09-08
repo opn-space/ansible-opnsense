@@ -36,8 +36,9 @@ def run_module():
             description='Description for this Public Service.'
         ),
         bind=dict(
-            type='list', elements='str', required=True,
-            description='Listen addresses (e.g. 127.0.0.1:8080 or www.example.com:443).'
+            type='list', elements='str', required=False, default=None,
+            description='Listen addresses (e.g. 127.0.0.1:8080 or www.example.com:443). '
+                        'Required to create or update a frontend; not needed to delete one.'
         ),
         bind_options=dict(
             type='str', required=False, default=None,
@@ -304,6 +305,13 @@ def run_module():
         argument_spec=module_args,
         supports_check_mode=True,
         required_if=[
+            # 'bind' is what a frontend listens on, so it is required to create
+            # or update one - but a deletion is addressed by name alone, and an
+            # unconditionally required argument made 'state: absent'
+            # unreachable for any caller that does not still hold the listen
+            # addresses of the frontend it is removing. A declarative role
+            # deleting what its variables no longer name is exactly that caller.
+            ('state', 'present', ('bind',)),
             ('ssl_enabled', True, ('ssl_certificates',)),
         ],
     )
