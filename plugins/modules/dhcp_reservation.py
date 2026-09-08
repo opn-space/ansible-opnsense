@@ -44,6 +44,52 @@ def run_module():
             description='Offer a hostname to the client',
         ),
         description=dict(type='str', required=False, aliases=['desc']),
+        # Per-host DHCP options. Same argument names, aliases and defaults as
+        # dhcp_subnet uses for the same options, so an inventory reads alike
+        # whether an option is offered to a whole subnet or to one host - and
+        # an option set here overrides the subnet's.
+        #
+        # There is deliberately no 'auto_options' and no 'v6_only_preferred':
+        # OPNsense's Kea model gives a reservation neither, so offering them
+        # would be offering a value the appliance discards.
+        gateway=dict(
+            type='list', elements='str', required=False, aliases=['gw', 'routers'], default=[],
+            description='Default gateways to offer to this client',
+        ),
+        routes=dict(
+            type='str', required=False, aliases=['static_routes'], default='',
+            description='Static routes that the client should install in its routing cache, '
+                        'defined as dest-ip1,router-ip1;dest-ip2,router-ip2',
+        ),
+        dns=dict(
+            type='list', elements='str', required=False, aliases=['dns_servers', 'dns_srv'], default=[],
+            description='DNS servers to offer to this client',
+        ),
+        domain=dict(
+            type='str', required=False, aliases=['domain_name', 'dom_name', 'dom'], default='',
+            description='The domain name to offer to this client, overriding the one its subnet offers',
+        ),
+        domain_search=dict(
+            type='list', elements='str', required=False, aliases=['dom_search'], default=[],
+            description="Specifies a 'search list' of Domain Names to be used by the client to locate "
+                        'not-fully-qualified domain names.',
+        ),
+        ntp_servers=dict(
+            type='list', elements='str', required=False, aliases=['ntp_srv', 'ntp'], default=[],
+            description='Specifies a list of IP addresses indicating NTP (RFC 5905) servers available to the client.',
+        ),
+        time_servers=dict(
+            type='list', elements='str', required=False, aliases=['time_srv'], default=[],
+            description='Specifies a list of RFC 868 time servers available to the client.',
+        ),
+        tftp_server=dict(
+            type='str', required=False, aliases=['tftp', 'tftp_srv', 'tftp_server_name'], default='',
+            description='TFTP server address or fqdn',
+        ),
+        tftp_file=dict(
+            type='str', required=False, aliases=['tftp_boot_file', 'boot_file_name'], default='',
+            description='TFTP Boot filename to request',
+        ),
         ipv=dict(type='int', required=False, default=4, choices=[4, 6], aliases=['ip_version']),
         **RELOAD_MOD_ARG,
         **STATE_MOD_ARG,
