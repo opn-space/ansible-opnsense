@@ -46,12 +46,26 @@ class CronJob(BaseModule):
     # disguise a job as plugin-registered.
     FIELDS_ALL = ['description', 'enabled', 'origin']
     FIELDS_ALL.extend(FIELDS_CHANGE)
+    # Read but never written or diffed. FIELDS_ALL drives the outgoing request and
+    # the diff as well as the read, so a field listed there and absent from the
+    # argument spec raises KeyError the moment a job is created - which is what
+    # the first run of this change did. build_request() below drops it from the
+    # payload and this keeps it out of the change decision.
+    FIELDS_DIFF_EXCLUDE = ['origin']
     EXIST_ATTR = 'cron'
 
     def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
         BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.cron = {}
         self.available_commands = []
+
+    def build_request(self) -> dict:
+        # 'origin' is read-only: it is in FIELDS_ALL so a caller can see which
+        # jobs OPNsense registered for itself, and it is dropped here so nothing
+        # writes it. The model's default is already correct for anything this
+        # module creates, and it is not a module argument at all - so without
+        # this the payload builder looks for a parameter that does not exist.
+        return self._base_build_request(ignore_fields=['origin'])
 
     def check(self) -> None:
         if self.p['state'] == 'present' and is_unset(self.p['command']):
