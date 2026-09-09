@@ -29,43 +29,14 @@ class CronJob(BaseModule):
         'select': ['command'],
         'int': ['minutes', 'hours', 'days', 'months', 'weekdays'],
     }
-    # 'origin' is READ-ONLY here on purpose: it is in FIELDS_ALL so a caller can
-    # see it, and deliberately not in FIELDS_CHANGE so nothing writes it.
-    #
-    # OPNsense's plugins register cron jobs of their own and refuse to delete
-    # them - del_job answers HTTP 500 "Cannot delete this automatically
-    # registered cron job." The field that tells them apart is origin: 'cron' for
-    # anything created through the API or the GUI, which is the model's default,
-    # and the registering plugin's name otherwise. Without it in FIELDS_ALL the
-    # value never reaches a caller, so any declarative purge built on this module
-    # cannot tell a job it may delete from one the appliance owns, and fails the
-    # run the first time both are present.
-    #
-    # Writable it would be worse than useless: the model default is already
-    # correct for anything this module creates, and posting it would let a caller
-    # disguise a job as plugin-registered.
-    FIELDS_ALL = ['description', 'enabled', 'origin']
+    FIELDS_ALL = ['description', 'enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
-    # Read but never written or diffed. FIELDS_ALL drives the outgoing request and
-    # the diff as well as the read, so a field listed there and absent from the
-    # argument spec raises KeyError the moment a job is created - which is what
-    # the first run of this change did. build_request() below drops it from the
-    # payload and this keeps it out of the change decision.
-    FIELDS_DIFF_EXCLUDE = ['origin']
     EXIST_ATTR = 'cron'
 
     def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
         BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.cron = {}
         self.available_commands = []
-
-    def build_request(self) -> dict:
-        # 'origin' is read-only: it is in FIELDS_ALL so a caller can see which
-        # jobs OPNsense registered for itself, and it is dropped here so nothing
-        # writes it. The model's default is already correct for anything this
-        # module creates, and it is not a module argument at all - so without
-        # this the payload builder looks for a parameter that does not exist.
-        return self._base_build_request(ignore_fields=['origin'])
 
     def check(self) -> None:
         if self.p['state'] == 'present' and is_unset(self.p['command']):
@@ -90,7 +61,21 @@ class CronJob(BaseModule):
                     self.available_commands.append(cmd)
 
     def simplify_existing(self, existing: dict) -> dict:
+        # 'origin' is KEPT. It used to be popped here, which is what made it
+        # invisible to callers - it is neither missing from the API nor gated by
+        # FIELDS_ALL, it was simply deleted from every entry on the way out.
+        #
+        # OPNsense's plugins register cron jobs of their own and refuse to delete
+        # them: del_job answers HTTP 500 "Cannot delete this automatically
+        # registered cron job." origin is what tells them apart - 'cron' for
+        # anything created through the API or the GUI, the registering plugin's
+        # name otherwise - so without it a declarative caller cannot tell a job it
+        # may delete from one the appliance owns, and fails the run the first time
+        # both are present.
+        #
+        # It stays out of FIELDS_ALL, which drives the outgoing request and the
+        # diff rather than the read, so nothing writes it and nothing compares it.
+        # The model's default is already correct for anything this module creates.
         simple = self._base_simplify_existing(existing)
-        simple.pop('origin')
         self._build_all_available_cmds(existing['command'])
         return simple
