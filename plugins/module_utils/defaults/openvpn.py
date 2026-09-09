@@ -15,10 +15,15 @@ OPENVPN_INSTANCE_MOD_ARGS = dict(
                     'If unspecified, OpenVPN will bind to all interfaces.'
     ),
     mode=dict(
-        type='str', required=False, default='tun', aliases=['type'], choices=['tun', 'tap', 'dco'],
+        type='str', required=False, default='tun', aliases=['type'],
+        choices=['tun', 'tap', 'ovpn', 'dco'],
         description='Choose the type of tunnel, OSI Layer 3 [tun] is the most common option '
                     'to route IPv4 or IPv6 traffic, [tap] offers Ethernet 802.3 (OSI Layer 2) connectivity '
-                    'between hosts and is usually combined with a bridge, [dco] offers the best speed between hosts.'
+                    'between hosts and is usually combined with a bridge, [ovpn] is Data Channel Offload '
+                    '(DCO) and offers the best speed between hosts. '
+                    "[dco] is accepted as a synonym for [ovpn]: DCO is the label OPNsense's GUI shows and "
+                    'ovpn is the value its model stores. DCO instances are UDP only and take no fragment '
+                    'size and no fast-io.'
     ),
     log_level=dict(
         type='int', required=False, default=3, aliases=['verbosity', 'verb'],

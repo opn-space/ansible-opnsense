@@ -106,6 +106,15 @@ class Server(BaseModule):
     def check(self) -> None:
         self.p['role'] = 'server'
 
+        # 'dco' is the label OPNsense's GUI shows for this option; 'ovpn' is the
+        # value its model stores - OpenVPN.xml carries <ovpn>DCO</ovpn>. 'mode' is
+        # a select field, so a label reaches the API as no option key at all and
+        # OPNsense answers {'instance.dev_type': 'Option [] not in list.'}. Accept
+        # both and send what the appliance wants; 'dco' has never worked, so
+        # nothing depends on it continuing to fail.
+        if self.p['mode'] == 'dco':
+            self.p['mode'] = 'ovpn'
+
         if self.p['state'] == 'present':
             if is_unset(self.p['server_ip4']) and is_unset(self.p['server_ip6']):
                 self.m.fail_json(
