@@ -29,7 +29,22 @@ class CronJob(BaseModule):
         'select': ['command'],
         'int': ['minutes', 'hours', 'days', 'months', 'weekdays'],
     }
-    FIELDS_ALL = ['description', 'enabled']
+    # 'origin' is READ-ONLY here on purpose: it is in FIELDS_ALL so a caller can
+    # see it, and deliberately not in FIELDS_CHANGE so nothing writes it.
+    #
+    # OPNsense's plugins register cron jobs of their own and refuse to delete
+    # them - del_job answers HTTP 500 "Cannot delete this automatically
+    # registered cron job." The field that tells them apart is origin: 'cron' for
+    # anything created through the API or the GUI, which is the model's default,
+    # and the registering plugin's name otherwise. Without it in FIELDS_ALL the
+    # value never reaches a caller, so any declarative purge built on this module
+    # cannot tell a job it may delete from one the appliance owns, and fails the
+    # run the first time both are present.
+    #
+    # Writable it would be worse than useless: the model default is already
+    # correct for anything this module creates, and posting it would let a caller
+    # disguise a job as plugin-registered.
+    FIELDS_ALL = ['description', 'enabled', 'origin']
     FIELDS_ALL.extend(FIELDS_CHANGE)
     EXIST_ATTR = 'cron'
 
