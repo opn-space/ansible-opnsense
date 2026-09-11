@@ -54,6 +54,13 @@ def run_module():
             type='bool', required=False, default=False, aliases=['log_neigh'],
             description='Enable extended logging of BGP neighbor changes'
         ),
+        enforce_first_as=dict(
+            type='bool', required=False, default=True, aliases=['enforce_first'],
+            description='Reject incoming updates whose AS-path does not begin with the '
+                        "neighbor's own AS number. OPNsense enables this by default; the "
+                        'default here matches it, so an omitted value leaves a stock '
+                        'appliance as it is'
+        ),
         **RELOAD_MOD_ARG,
         **EN_ONLY_MOD_ARG,
         **OPN_MOD_ARGS,

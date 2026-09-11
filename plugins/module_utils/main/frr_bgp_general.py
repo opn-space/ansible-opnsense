@@ -16,7 +16,7 @@ class General(GeneralModule):
     API_CONT_REL = 'service'
     FIELDS_CHANGE = [
         'as_number', 'id', 'graceful', 'enabled', 'networks', 'distance', 'log_neighbor_changes',
-        'network_import_check',
+        'network_import_check', 'enforce_first_as',
     ]
     FIELDS_ALL = FIELDS_CHANGE
     FIELDS_TRANSLATE = {
@@ -26,7 +26,10 @@ class General(GeneralModule):
         'network_import_check': 'networkimportcheck',
     }
     FIELDS_TYPING = {
-        'bool': ['enabled', 'graceful', 'network_import_check', 'log_neighbor_changes'],
+        'bool': [
+            'enabled', 'graceful', 'network_import_check', 'log_neighbor_changes',
+            'enforce_first_as',
+        ],
         'list': ['networks'],
         'int': ['distance', 'as_number'],
     }
