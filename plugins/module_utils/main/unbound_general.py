@@ -76,8 +76,10 @@ class General(GeneralModule):
         if not is_unset(self.p['dhcp_domain']):
             validate_domain(module=self.m, domain=self.p['dhcp_domain'])
 
-        if not is_ip6_network(self.p['dns64_prefix']):
-            self.m.fail_json(f"Value '{self.p['dns64_prefix']}' is an invalid IPv6 network!")
+        if not is_unset(self.p['dns64_prefix']) and not is_ip6_network(self.p['dns64_prefix']):
+            self.m.fail_json(
+                f"dns64_prefix: value '{self.p['dns64_prefix']}' is an invalid IPv6 network!"
+            )
 
         self.settings = self.search_call()
 

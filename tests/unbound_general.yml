@@ -190,6 +190,38 @@
         opn7.changed
       when: not ansible_check_mode
 
+    - name: Clearing the DNS64 prefix - the state an appliance with DNS64 disabled holds
+      oxlorg.opnsense.unbound_general:
+        port: 53
+        interfaces:
+          - 'lan'
+        local_zone_type: 'transparent'
+        dns64: false
+        dns64_prefix: ''
+        enabled: true
+        reload: false  # speed
+      register: opn8
+      failed_when: >
+        opn8.failed or
+        not opn8.changed
+      when: not ansible_check_mode
+
+    - name: Empty DNS64 prefix - nothing changed
+      oxlorg.opnsense.unbound_general:
+        port: 53
+        interfaces:
+          - 'lan'
+        local_zone_type: 'transparent'
+        dns64: false
+        dns64_prefix: ''
+        enabled: true
+        reload: false  # speed
+      register: opn9
+      failed_when: >
+        opn9.failed or
+        opn9.changed
+      when: not ansible_check_mode
+
     - name: Cleanup
       oxlorg.opnsense.unbound_general:
         enabled: false
