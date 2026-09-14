@@ -28,3 +28,15 @@
       failed_when: >
         opn2.failed or
         'data' not in opn2
+
+    # A grid search, which is what every route view is. The bare name this used
+    # to request has no controller action and answered 404, so the assertion is
+    # the grid's own envelope rather than any particular route.
+    - name: Showing the BGP IPv4 route table
+      oxlorg.opnsense.frr_diagnostic:
+        target: 'bgproute4'
+      register: opn3
+      failed_when: >
+        opn3.failed or
+        'data' not in opn3 or
+        'rows' not in opn3.data

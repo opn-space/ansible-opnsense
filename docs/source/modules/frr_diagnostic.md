@@ -39,7 +39,37 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
 
 | Parameter   | Type            | Required | Default value         | Aliases | Comment                                                                                                                                                                                                                                                                                                                                  |
 |:------------|:----------------|:---------|:----------------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| target      | string          | true     | -                     | -       | What information to query. One of: 'bgpneighbors', 'bgproute', 'bgproute4', 'bgproute6', 'bgpsummary', 'generalroute', 'generalroute4', 'generalroute6', 'generalrunningconfig', 'ospfdatabase', 'ospfinterface', 'ospfneighbor', 'ospfoverview', 'ospfroute', 'ospfv3database', 'ospfv3interface', 'ospfv3neighbor', 'ospfv3overview', 'ospfv3route' |
+| target      | string          | true     | -                     | -       | What information to query. One of: 'bgpneighbors', 'bgproute4', 'bgproute6', 'bgpsummary', 'generalroute4', 'generalroute6', 'generalrunningconfig', 'ospfdatabase', 'ospfinterface', 'ospfneighbor', 'ospfoverview', 'ospfroute', 'ospfv3database', 'ospfv3interface', 'ospfv3overview', 'ospfv3route'. See [what each one answers](#what-a-target-answers) |
+
+----
+
+## What a target answers
+
+The shape differs per target, because the plugin's diagnostics controller serves
+two kinds of view.
+
+**Grid searches.** Every route and neighbour-list view is a grid, and the module
+requests it as one - OPNsense names those actions `search_bgproute4`,
+`search_ospfroute` and so on. They answer:
+
+```json
+{"current": 1, "rowCount": 0, "rows": [], "total": 0, "subtitle": "routerId : 10.110.3.8 , localAS : 65551"}
+```
+
+`rows` is the table, and `subtitle` is the line the GUI prints above it. The grid
+targets are:
+
+`bgproute4`, `bgproute6`, `generalroute4`, `generalroute6`, `ospfneighbor`,
+`ospfroute`, `ospfv3database`, `ospfv3route`
+
+**Everything else** passes FRR's own output through: `bgpneighbors`,
+`bgpsummary`, `ospfdatabase`, `ospfinterface`, `ospfoverview`,
+`ospfv3interface`, `ospfv3overview` answer FRR's JSON as the daemon produced it,
+and `generalrunningconfig` answers the running configuration as text.
+
+`bgproute`, `generalroute` and `ospfv3neighbor` used to be offered and were
+removed: the plugin has no controller action for any of the three, so every call
+made with one answered `{"errorMessage":"Endpoint not found"}`.
 
 ----
 
@@ -59,7 +89,7 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
   tasks:
     - name: Example
       oxlorg.opnsense.frr_diagnostic:
-        target: 'generalroute'
+        target: 'generalroute4'
       register: frr_info
 
     - name: Printing
