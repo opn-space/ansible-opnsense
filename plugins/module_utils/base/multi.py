@@ -120,6 +120,17 @@ def build_multi_mod_args(
                                 'purged. WARNING: Make sure to run a check-mode beforehand and manually '
                                 'verify the deletions!'
                 ),
+                purge_exclude_filter=dict(
+                    type='dict', required=False, default={}, aliases=['purge_exclude_filters'],
+                    description='Field-value pairs that exempt an existing entry from purge_unconfigured '
+                                '- per example: {description: opn-ha-link}. Entries matching are never deleted. '
+                                'This is the inverse of purge_filter: that one selects what to delete, this one '
+                                'selects what to protect.'
+                ),
+                purge_exclude_filter_partial=dict(
+                    type='bool', required=False, default=False,
+                    description='If true - the exclude filter will also match on a partial value-match.'
+                ),
                 purge_unconfigured=dict(
                     type='bool', required=False, default=False, aliases=['purge_unknown', 'purge_orphaned'],
                     description='Usable if configured entries are supplied - will delete all entries NOT matched with '
@@ -518,13 +529,32 @@ class MultiModule:
 
                 self._purge_entry(entry_cnf)
 
+    def _matches_purge_exclude_filter(self, entry_cnf: dict) -> bool:
+        # entries another consumer owns and this module's config cannot name - they are never deleted.
+        # read with .get() as this walks EVERY pre-existing entry, including ones lacking the field
+        exclude_filter = self.mc['purge_exclude_filter']
+        if len(exclude_filter) == 0:
+            return False
+
+        matches = []
+        for k, v in exclude_filter.items():
+            if self.mc['purge_exclude_filter_partial']:
+                matches.append(str(entry_cnf.get(k, '')).find(str(v)) != -1)
+
+            else:
+                matches.append(str(entry_cnf.get(k, '')) == str(v))
+
+        return all(matches)
+
     def _purge_unconfigured(self):
         if not self.mc['purge_unconfigured']:
             return
 
         # checking all pre-existing entries if they are contained in the user's config or should be deleted
         for entry_cnf in self._cache_original['main']:
-            if self.callbacks.purge_exclude(entry_cnf) or self._in_entries_configured(entry_cnf):
+            if self.callbacks.purge_exclude(entry_cnf) or \
+                    self._matches_purge_exclude_filter(entry_cnf) or \
+                    self._in_entries_configured(entry_cnf):
                 continue
 
             if self.p['debug']:
