@@ -7,6 +7,8 @@ from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate im
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import Session
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.rule import \
     validate_values
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.rule import \
+    RULE_ICMPV6_TYPES
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.module import BaseModule
 
 
@@ -112,6 +114,17 @@ class Rule(BaseModule):
         return log_name
 
     def check(self) -> None:
+        # OPNsense keys the icmp6type options on the ICMPv6 type NUMBER, so
+        # 'echoreq' is a label and '128' is the value - see RULE_ICMPV6_TYPES.
+        # Normalised here, before the request and the diff are built from
+        # self.p, so a rule declared with names compares equal to the one the
+        # appliance returns in numbers and reports changed once.
+        if self.p.get('icmpv6_type'):
+            self.p['icmpv6_type'] = [
+                RULE_ICMPV6_TYPES.get(icmpv6_type, icmpv6_type)
+                for icmpv6_type in self.p['icmpv6_type']
+            ]
+
         if self.p['state'] == 'present':
             validate_int_fields(
                 module=self.m,

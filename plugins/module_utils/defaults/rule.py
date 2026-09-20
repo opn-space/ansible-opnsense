@@ -1,5 +1,39 @@
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.defaults.main import STATE_MOD_ARG
 
+# OPNsense keys this field's options on the ICMPv6 TYPE NUMBER, not on the name
+# the model spells them with. BaseModel::parseOptionData() - "item keys can be
+# overwritten using value attributes" - and Filter.xml carries
+# <routeradv value="134">Router advertisement</routeradv>, so 134 is the value
+# and routeradv is only the label the GUI shows. icmptype (IPv4) declares no
+# value attributes on its options, which is why the names are the values there
+# and only there.
+#
+# Both spellings are accepted and the names are normalised onto the numbers
+# before the request is built (see main/rule.py). Declaring a rule with numeric
+# ICMPv6 types is unreadable, and every name this module ever offered was
+# refused by the appliance, so nothing depends on the old behaviour.
+RULE_ICMPV6_TYPES = {
+    'unreach': '1',
+    'toobig': '2',
+    'timex': '3',
+    'paramprob': '4',
+    'echoreq': '128',
+    'echorep': '129',
+    'listqry': '130',
+    'listenrep': '131',
+    'listendone': '132',
+    'routersol': '133',
+    'routeradv': '134',
+    'neighbrsol': '135',
+    'neighbradv': '136',
+    'redir': '137',
+    'routrrenum': '138',
+    'niqry': '139',
+    'nirep': '140',
+    'mtraceresp': '200',
+    'mtrace': '201',
+}
+
 RULE_DEFAULTS = {
     'sequence': 1,
     'action': 'pass',
@@ -259,12 +293,12 @@ RULE_MOD_ARGS = dict(
     ),
     icmpv6_type=dict(
         type='list', elements='str', required=False, default=RULE_DEFAULTS['icmpv6_type'],
-        aliases=RULE_MOD_ARG_ALIASES['icmpv6_type'], choices=[
-            'unreach', 'toobig', 'timex', 'paramprob', 'echoreq', 'echorep', 'listqry', 'listenrep',
-            'listendone', 'routersol', 'routeradv', 'neighbrsol', 'neighbradv', 'redir', 'routrrenum',
-            'niqry', 'nirep', 'mtraceresp', 'mtrace',
-        ],
-        description='If protocol is ICMPv6 you can specify the types'
+        aliases=RULE_MOD_ARG_ALIASES['icmpv6_type'],
+        choices=[*RULE_ICMPV6_TYPES.keys(), *RULE_ICMPV6_TYPES.values()],
+        description='If protocol is IPV6-ICMP you can specify the types. Either the name '
+                    "OPNsense's model spells an option with ('echoreq') or the ICMPv6 type "
+                    "number it stores ('128'); names are normalised onto numbers before the "
+                    'request is built. OPNsense refuses the field unless protocol is IPV6-ICMP.'
     ),
     divert_to=dict(type='str', required=False, description='Target to divert the traffic to'),
     shaper1=dict(type='str', required=False, description='Traffic Shaper to apply'),
