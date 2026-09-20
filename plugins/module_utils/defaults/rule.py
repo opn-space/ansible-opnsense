@@ -261,7 +261,7 @@ RULE_MOD_ARGS = dict(
         type='list', elements='str', required=False, default=RULE_DEFAULTS['icmpv6_type'],
         aliases=RULE_MOD_ARG_ALIASES['icmpv6_type'], choices=[
             'unreach', 'toobig', 'timex', 'paramprob', 'echoreq', 'echorep', 'listqry', 'listenrep',
-            'listendone', 'routersol', 'reouteradv', 'neighbrsol', 'neighbradv', 'redir', 'routrrenum',
+            'listendone', 'routersol', 'routeradv', 'neighbrsol', 'neighbradv', 'redir', 'routrrenum',
             'niqry', 'nirep', 'mtraceresp', 'mtrace',
         ],
         description='If protocol is ICMPv6 you can specify the types'

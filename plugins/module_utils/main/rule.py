@@ -30,7 +30,7 @@ class Rule(BaseModule):
         'allow_opts', 'state_type', 'state_policy', 'state_timeout',
         'max_states', 'max_src_nodes', 'max_src_states', 'max_src_conn', 'max_src_conn_rate',
         'max_src_conn_rates', 'overload', 'adaptive_start', 'adaptive_end', 'prio', 'set_prio', 'set_prio_low',
-        'tcp_flags', 'tcp_flags_clear', 'schedule', 'tos', 'icmp_type',
+        'tcp_flags', 'tcp_flags_clear', 'schedule', 'tos', 'icmp_type', 'icmpv6_type',
         'divert_to', 'shaper1', 'shaper2',
     ]
     FIELDS_ALL = ['enabled']
