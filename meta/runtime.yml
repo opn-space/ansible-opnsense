@@ -120,6 +120,8 @@ action_groups:
     - oxlorg.opnsense.cron
     - oxlorg.opnsense.syslog
     - oxlorg.opnsense.snapshot
+  crowdsec:
+    - oxlorg.opnsense.crowdsec_general
   ids:
     - oxlorg.opnsense.ids_action
     - oxlorg.opnsense.ids_general
@@ -247,6 +249,7 @@ action_groups:
           - oxlorg.opnsense.nut
           - oxlorg.opnsense.nut_diagnostics
           - oxlorg.opnsense.radvd
+          - oxlorg.opnsense.crowdsec
 
 plugin_routing:
   modules:
