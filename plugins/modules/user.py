@@ -44,6 +44,11 @@ def run_module():
             description='Login shell',
         ),
         password=dict(type='str', required=False, no_log=True),
+        otp_seed=dict(
+            type='str', required=False, no_log=True,
+            description='Base32 TOTP secret. Written as given, never generated; '
+                        'omitted leaves the seed on the appliance as it is',
+        ),
         update_password=dict(
             type='str', required=False, choices=['always', 'on_create'], default='always',
             description='Update the password `always` or only `on_create`.',

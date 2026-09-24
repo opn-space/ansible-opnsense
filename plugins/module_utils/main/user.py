@@ -1,3 +1,7 @@
+from base64 import b32decode
+from binascii import Error as B32Error
+from re import fullmatch
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.main import \
@@ -54,6 +58,13 @@ class User(BaseModule):
         ):
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['password', 'scrambled_password']
 
+        # sent only when declared: OPNsense stores the field as posted, so an
+        # empty value would clear a seed the caller never mentioned
+        if not is_unset(self.p['otp_seed']):
+            self._check_otp_seed()
+            self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['otp_seed']
+            self.FIELDS_ALL = self.FIELDS_ALL + ['otp_seed']
+
         self._base_check()
 
         if not is_unset(self.p['membership']) or self.p['membership'] == []:
@@ -64,6 +75,23 @@ class User(BaseModule):
             ]
         if not is_unset(self.p['privilege']) or self.p['privilege'] == []:
             self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['privilege']
+
+    def _check_otp_seed(self) -> None:
+        # an invalid seed is accepted on write and only fails at login time
+        seed = self.p['otp_seed']
+        try:
+            valid = fullmatch(r'[A-Z2-7]+=*', seed) is not None
+            if valid:
+                b32decode(seed.rstrip('=') + '=' * (-len(seed.rstrip('=')) % 8))
+
+        except B32Error:
+            valid = False
+
+        if not valid:
+            self.m.fail_json(
+                f"User '{self.p['name']}': otp_seed is not valid base32 "
+                "(upper-case A-Z and 2-7, optionally '='-padded)"
+            )
 
     def create(self) -> None:
         if is_unset(self.p['password']) and is_unset(self.p['scrambled_password']):
