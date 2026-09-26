@@ -39,6 +39,15 @@ class Account(BaseModule):
         if self.p['state'] == 'present' and self.p['register']:
             self.register()
 
+    def create(self) -> dict:
+        # registerAction($uuid) takes the uuid in the URL, and on a first run
+        # the only place it exists is the answer to the add.
+        response = self._base_create()
+        if 'uuid' in response:
+            self.account = {self.field_pk: response['uuid']}
+
+        return response
+
     def register(self) -> None:
         if self.account.get('statusCode', 100) == 200:
             return
@@ -51,6 +60,7 @@ class Account(BaseModule):
             self.s.post(cnf={
                 **self.call_cnf,
                 'command': 'register',
+                'params': [self.account[self.field_pk]],
             })
 
     def reload(self):
