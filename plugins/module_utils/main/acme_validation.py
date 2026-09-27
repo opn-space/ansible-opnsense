@@ -123,10 +123,27 @@ class Validation(BaseModule):
                 ]
 
             elif self.p['method'] == 'dns01':
-                # OPNsense API does not seem to return the access-tokens anymore - no way to compare it
-                self.r['changed'] = True
+                # dns_service and dns_sleep always carry a value; a credential is
+                # compared only when the caller declared it. A blanket
+                # changed=True here rewrote every dns01 validation on every run.
+                self.FIELDS_CHANGE = self.FIELDS_CHANGE + ['dns_service', 'dns_sleep'] + self._declared_credentials()
+                self.FIELDS_OPTIONAL = self._declared_credentials()
 
         self._base_check()
+
+        # A declared credential the appliance does not return cannot be
+        # compared, so it is the one thing still treated as changed.
+        if self.p['state'] == 'present' and self.p['method'] == 'dns01' and self.validation:
+            if any(field not in self.validation for field in self._declared_credentials()):
+                self.r['changed'] = True
+
+    def _declared_credentials(self) -> list:
+        return [
+            field
+            for field in self.FIELDS_ALL
+            if field.startswith('dns_') and field not in ('dns_service', 'dns_sleep')
+            and not is_unset(self.p.get(field))
+        ]
 
     def reload(self):
         # no reload required
