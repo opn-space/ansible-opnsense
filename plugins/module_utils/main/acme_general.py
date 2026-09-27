@@ -16,12 +16,15 @@ class General(GeneralModule):
     API_CONT = 'settings'
     API_CONT_REL = 'service'
     API_CMD_REL = 'reconfigure'
+    # 'enabled' is compared, not only sent: GeneralModule.update() runs
+    # _base_update(enable_switch=False), which decides from FIELDS_CHANGE alone
+    # and never falls through to the enable toggle, so a page differing only in
+    # the flag was never posted and a disabled plugin reported no change.
     FIELDS_CHANGE = [
-        'auto_renewal', 'challenge_port', 'tls_challenge_port', 'restart_timeout',
+        'enabled', 'auto_renewal', 'challenge_port', 'tls_challenge_port', 'restart_timeout',
         'haproxy_integration', 'log_level', 'show_intro',
     ]
-    FIELDS_ALL = ['enabled']
-    FIELDS_ALL.extend(FIELDS_CHANGE)
+    FIELDS_ALL = FIELDS_CHANGE
     FIELDS_TRANSLATE = {
         'auto_renewal': 'autoRenewal',
         'challenge_port': 'challengePort',
