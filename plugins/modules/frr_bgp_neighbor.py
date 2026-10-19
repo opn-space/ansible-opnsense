@@ -74,8 +74,14 @@ def run_module():
                         'and this knob is not enabled, the session will not establish.'
         ),
         multi_protocol=dict(
-            type='bool', required=False, default=False,
-            description='Is this neighbour multiprotocol capable per RFC 2283'
+            type='bool', required=False,
+            description='Is this neighbour multiprotocol capable per RFC 2283 (os-frr < 2.0); '
+                        "true is the same as family ['ipv4', 'ipv6']"
+        ),
+        family=dict(
+            type='list', elements='str', required=False, choices=['ipv4', 'ipv6'],
+            description="Address families of the session (os-frr 2.0); defaults to ['ipv4']. "
+                        'On os-frr < 2.0 it sets multi_protocol when ipv6 is included',
         ),
         rrclient=dict(
             type='bool', required=False, default=False,
@@ -151,6 +157,7 @@ def run_module():
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True,
+        mutually_exclusive=[('family', 'multi_protocol')],
     )
 
     module_wrapper(Neighbor(module=module, result=result))

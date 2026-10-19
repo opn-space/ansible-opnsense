@@ -25,9 +25,14 @@ class Neighbor(BaseModule):
         'multi_hop', 'multi_protocol', 'rrclient', 'bfd', 'send_default_route',
         'as_override', 'disable_connected_check', 'keepalive', 'hold_down',
         'connect_timer', 'description', 'prefix_list_in', 'prefix_list_out',
-        'route_map_in', 'route_map_out', 'remote_as_mode',
+        'route_map_in', 'route_map_out', 'remote_as_mode', 'family',
     ]
     FIELDS_DIFF_NO_LOG = ['password']
+    # os-frr 2.0 replaced the 'multiprotocol' toggle with the address families
+    # ('family': ipv4/ipv6, migration M1_1_3). check() keeps both in step and
+    # both are sent - each model ignores the key it does not define - while
+    # only the one the appliance returns is compared.
+    FIELDS_OPTIONAL = ['multi_protocol', 'family']
     FIELDS_ALL = ['enabled']
     FIELDS_ALL.extend(FIELDS_CHANGE)
     FIELDS_TRANSLATE = {
@@ -58,6 +63,7 @@ class Neighbor(BaseModule):
             'source_int', 'ipv6_link_local_int', 'prefix_list_in', 'prefix_list_out',
             'route_map_in', 'route_map_out', 'remote_as_mode',
         ],
+        'list': ['family'],
     }
     INT_VALIDATIONS = {
         'as_number': {'min': 1, 'max': 4294967295},
@@ -80,6 +86,11 @@ class Neighbor(BaseModule):
 
     def check(self) -> None:
         if self.p['state'] == 'present':
+            if is_unset(self.p['family']):
+                self.p['family'] = ['ipv4', 'ipv6'] if self.p['multi_protocol'] else ['ipv4']
+
+            self.p['multi_protocol'] = 'ipv6' in self.p['family']
+
             if is_unset(self.p['ip']):
                 self.m.fail_json('To create a BGP neighbor you need to provide its peer-ip!')
 
