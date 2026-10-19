@@ -73,9 +73,11 @@ action_groups:
     - oxlorg.opnsense.frr_ospf_redistribution
     - oxlorg.opnsense.frr_ospf_route_map
     - oxlorg.opnsense.frr_ospf_network
+    - oxlorg.opnsense.frr_ospf_area
     - oxlorg.opnsense.frr_ospf3_general
     - oxlorg.opnsense.frr_ospf3_prefix_list
     - oxlorg.opnsense.frr_ospf3_interface
+    - oxlorg.opnsense.frr_ospf3_area
     - oxlorg.opnsense.frr_ospf3_redistribution
     - oxlorg.opnsense.frr_ospf3_route_map
     - oxlorg.opnsense.frr_ospf3_network

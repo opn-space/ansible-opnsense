@@ -56,6 +56,7 @@ def ospf_network(mocker):
     mocker.patch.object(OspfNetwork, '_base_check', return_value=None)
     mocker.patch.object(OspfNetwork, 'find_single_link', return_value=None)
     instance.existing_prefixes = {}
+    instance.ospf_settings = None
     instance.p = {
         'state': 'present', 'ip': '10.0.0.0', 'mask': 24, 'area': '0.0.0.0',
         'area_range': '', 'prefix_list_in': '', 'prefix_list_out': '',

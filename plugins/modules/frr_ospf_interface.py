@@ -35,6 +35,11 @@ def run_module():
             type='str', required=False,
             description='Area in wildcard mask style like 0.0.0.0 and no decimal 0'
         ),
+        passive=dict(
+            type='bool', required=False, default=False,
+            description='Send no OSPF packets on this interface '
+                        '(os-frr 2.0 and later; before: frr_ospf_general passive_ints)'
+        ),
         cost=dict(type='int', required=False),
         cost_demoted=dict(type='int', required=False, default=65535),
         carp_depend_on=dict(

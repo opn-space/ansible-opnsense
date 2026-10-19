@@ -46,6 +46,7 @@ TARGETS = [
     'nat_destination',
     'ipsec_manual_spd', 'hasync_general', 'snapshot', 'frr_bgp_redistribution', 'frr_ospf_redistribution',
     'frr_ospf3_redistribution', 'frr_ospf3_route_map', 'frr_ospf3_prefix_list', 'frr_ospf3_network',
+    'frr_ospf_area', 'frr_ospf3_area',
     'frr_bgp_peer_group', 'user', 'group', 'privilege', 'interface_bridge', 'interface_gif', 'neighbor',
     'dnsmasq_general', 'ipsec_general', 'dnsmasq_domain', 'dnsmasq_host', 'dnsmasq_range', 'dnsmasq_option',
     'dnsmasq_boot', 'dnsmasq_tag', 'haproxy_general_settings', 'haproxy_general_cache', 'haproxy_general_defaults',
@@ -287,6 +288,14 @@ def run_module():
         elif target == 'frr_ospf_route_map':
             from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.frr_ospf_route_map \
                 import RouteMap as Target_Obj
+
+        elif target == 'frr_ospf_area':
+            from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.frr_ospf_area \
+                import Area as Target_Obj
+
+        elif target == 'frr_ospf3_area':
+            from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.frr_ospf3_area \
+                import Area as Target_Obj
 
         elif target == 'frr_ospf_network':
             from ansible_collections.oxlorg.opnsense.plugins.module_utils.main.frr_ospf_network \

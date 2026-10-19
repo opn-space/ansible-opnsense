@@ -4,6 +4,8 @@ from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
     Session
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
     is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.frr import \
+    get_areas, area_to_id, area_to_uuid
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.module import BaseModule
 
 
@@ -45,13 +47,38 @@ class Interface(BaseModule):
     }
     FIELDS_TYPING = {
         'bool': ['enabled', 'passive'],
-        'select': ['interface', 'carp_depend_on', 'network_type'],
+        'select': ['interface', 'carp_depend_on', 'network_type', 'area'],
     }
     EXIST_ATTR = 'int'
+    SEARCH_ADDITIONAL = {
+        # the whole page: its areas, and its shape (os-frr 2.0 has no 'networks')
+        'ospf6_settings': 'ospf6',
+    }
 
     def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
         BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.int = {}
+        self.ospf6_settings = None
+
+    @property
+    def os_frr_2(self) -> bool:
+        return isinstance(self.ospf6_settings, dict) and 'networks' not in self.ospf6_settings
+
+    def simplify_existing(self, existing: dict) -> dict:
+        simple = self._base_simplify_existing(existing)
+        if 'area' in simple:
+            simple['area'] = area_to_id(get_areas(self.ospf6_settings), simple['area'])
+
+        return simple
+
+    def build_request(self) -> dict:
+        area = self.p['area']
+        if self.os_frr_2 and self.p['state'] == 'present':
+            self.p['area'] = area_to_uuid(self.m, get_areas(self.ospf6_settings), area, 'frr_ospf3_area')
+
+        request = self._base_build_request()
+        self.p['area'] = area
+        return request
 
     def check(self) -> None:
         if self.p['state'] == 'present':

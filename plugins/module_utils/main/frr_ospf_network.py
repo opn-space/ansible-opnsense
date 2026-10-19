@@ -4,6 +4,8 @@ from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.api import \
     Session
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.validate import \
     is_ip_or_network, is_unset
+from ansible_collections.oxlorg.opnsense.plugins.module_utils.helper.frr import \
+    get_areas, area_to_id, area_to_uuid
 from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.module import BaseModule
 
 
@@ -34,7 +36,7 @@ class Network(BaseModule):
     FIELDS_OPTIONAL = ['area_range', 'prefix_list_in', 'prefix_list_out']
     FIELDS_TYPING = {
         'bool': ['enabled'],
-        'select': ['prefix_list_in', 'prefix_list_out'],
+        'select': ['prefix_list_in', 'prefix_list_out', 'area'],
     }
     INT_VALIDATIONS = {
         'mask': {'min': 0, 'max': 32},
@@ -53,6 +55,26 @@ class Network(BaseModule):
         self.existing_prefixes = None
         self.ospf_settings = None
 
+    @property
+    def os_frr_2(self) -> bool:
+        return isinstance(self.ospf_settings, dict) and 'passiveinterfaces' not in self.ospf_settings
+
+    def simplify_existing(self, existing: dict) -> dict:
+        simple = self._base_simplify_existing(existing)
+        if 'area' in simple:
+            simple['area'] = area_to_id(get_areas(self.ospf_settings), simple['area'])
+
+        return simple
+
+    def build_request(self) -> dict:
+        area = self.p['area']
+        if self.os_frr_2 and self.p['state'] == 'present':
+            self.p['area'] = area_to_uuid(self.m, get_areas(self.ospf_settings), area, 'frr_ospf_area')
+
+        request = self._base_build_request()
+        self.p['area'] = area
+        return request
+
     def check(self) -> None:
         if self.p['state'] == 'present':
             if is_unset(self.p['area']):
@@ -68,8 +90,7 @@ class Network(BaseModule):
 
         self._base_check()
 
-        if self.p['state'] == 'present' and self.ospf_settings is not None and \
-                'passiveinterfaces' not in self.ospf_settings:
+        if self.p['state'] == 'present' and self.os_frr_2:
             moved = [f for f in self.FIELDS_MOVED_TO_AREA if not is_unset(self.p[f])]
             if len(moved) > 0:
                 self.m.fail_json(

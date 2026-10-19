@@ -65,9 +65,22 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
 | reload           | boolean | false    | true                 | -       | If the running config should be reloaded on change - this will take some time. You might want to reload it 'manually' after all changes are done => using the [reload module](https://ansible-opnsense.oxl.app/general/reload.html). |
 | enabled          | boolean | false    | true                 | -       | En- or disable the service                                                                                                                                                                                                                                     |
 
+#### oxlorg.opnsense.frr_ospf_area
+
+An area record. os-frr 2.0 makes the `area` of `frr_ospf_interface` and `frr_ospf_network` a reference to it, so declare the area first; on os-frr 1.x areas carry only `id` and `type`, and `ranges` / prefix lists fail the module.
+
+| Parameter       | Type    | Required | Default value | Aliases             | Comment                                                                 |
+|:----------------|:--------|:---------|:--------------|:--------------------|:------------------------------------------------------------------------|
+| id              | string  | true     | -             | area                | Area ID in dotted format like 0.0.0.1; identifies the area              |
+| type            | string  | false    | ''            | -                   | One of 'stub', 'stub no-summary', 'nssa', 'nssa no-summary'; '' is a normal area                                     |
+| ranges          | list    | false    | []            | -                   | Networks summarized for this area (os-frr 2.0 and later)                |
+| prefix_list_in  | string  | false    | -             | prefix_in, pre_in   | Prefix-List filtering inbound, by name (os-frr 2.0 and later)           |
+| prefix_list_out | string  | false    | -             | prefix_out, pre_out | Prefix-List filtering outbound, by name (os-frr 2.0 and later)          |
+| reload          | boolean | false    | true          | -                   | If the running config should be reloaded on change                      |
+
 #### oxlorg.opnsense.frr_ospf_network
 
-**os-frr 2.0:** `area_range`, `prefix_list_in` and `prefix_list_out` moved from the network to the area (`frr_ospf_area`). Setting them against os-frr 2.0 fails the module; os-frr 1.x is unchanged.
+**os-frr 2.0:** `area` refers to an area declared with `frr_ospf_area` (still given as the dotted ID). `area_range`, `prefix_list_in` and `prefix_list_out` moved from the network to the area (`frr_ospf_area`). Setting them against os-frr 2.0 fails the module; os-frr 1.x is unchanged.
 
 | Parameter    | Type    | Required                           | Default value  | Aliases                              | Comment                                                                                                                                                                                                                                                          |
 |:-------------|:--------|:-----------------------------------|:---------------|:-------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -81,6 +94,8 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
 | reload       | boolean | false                              | true           | -                                    | If the running config should be reloaded on change - this will take some time. You might want to reload it 'manually' after all changes are done => using the [reload module](https://ansible-opnsense.oxl.app/general/reload.html). |
 
 #### oxlorg.opnsense.frr_ospf_interface
+
+**os-frr 2.0:** `area` refers to an area declared with `frr_ospf_area` and is still given as the dotted ID; an undefined area fails the module. `passive` (bool, default false) exists from os-frr 2.0 on; on os-frr 1.x use `frr_ospf_general` `passive_ints`.
 
 | Parameter           | Type    | Required                               | Default value         | Aliases   | Comment                                                                                                                                                                                                                                                          |
 |:--------------------|:--------|:---------------------------------------|:----------------------|:----------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -159,7 +174,22 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
 | prefix_list_out   | string  | -                                  | -              | prefix_out, pre_out                  | Prefix-List for outbound direction                                                                                                                                                 |
 | reload       | boolean | false                              | true           | -                                    | If the running config should be reloaded on change - this will take some time. You might want to reload it 'manually' after all changes are done => using the [reload module](https://ansible-opnsense.oxl.app/general/reload.html). |
 
+#### oxlorg.opnsense.frr_ospf3_area
+
+An OSPFv3 area record, new in os-frr 2.0, which makes the `area` of `frr_ospf3_interface` a reference to it. Against os-frr 1.x the module fails: there are no OSPFv3 area records.
+
+| Parameter       | Type    | Required | Default value | Aliases             | Comment                                                                 |
+|:----------------|:--------|:---------|:--------------|:--------------------|:------------------------------------------------------------------------|
+| id              | string  | true     | -             | area                | Area ID in dotted format like 0.0.0.1; identifies the area              |
+| type            | string  | false    | ''            | -                   | One of 'nssa', 'nssa no-summary'; '' is a normal area                                     |
+| ranges          | list    | false    | []            | -                   | Networks summarized for this area (os-frr 2.0 and later)                |
+| prefix_list_in  | string  | false    | -             | prefix_in, pre_in   | Prefix-List filtering inbound, by name (os-frr 2.0 and later)           |
+| prefix_list_out | string  | false    | -             | prefix_out, pre_out | Prefix-List filtering outbound, by name (os-frr 2.0 and later)          |
+| reload          | boolean | false    | true          | -                   | If the running config should be reloaded on change                      |
+
 #### oxlorg.opnsense.frr_ospf3_interface
+
+**os-frr 2.0:** `area` refers to an area declared with `frr_ospf3_area` and is still given as the dotted ID; an undefined area fails the module.
 
 | Parameter    | Type    | Required | Default value         | Aliases   | Comment                                                                                                                                                                                                                                                          |
 |:-------------|:--------|:---------|:----------------------|:----------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
