@@ -86,3 +86,14 @@ class Network(BaseModule):
             existing.append(entry)
 
         return existing
+
+    def _search_path_handling(self, data: dict, ak_path: str = None) -> dict:
+        # os-frr 2.0 removed OSPFv3 router-level networks: the page has no
+        # 'networks' key and the *Network endpoints became *Area.
+        if ak_path is None and isinstance(data, dict) and 'ospf6' in data and \
+                'networks' not in data['ospf6']:
+            self.m.fail_json(
+                'os-frr 2.0 removed OSPFv3 router-level networks; use frr_ospf3_interface'
+            )
+
+        return BaseModule._search_path_handling(self, data=data, ak_path=ak_path)

@@ -27,6 +27,11 @@ class General(GeneralModule):
         'originate_metric': 'originatemetric',
         'passive_ints': 'passiveinterfaces',
     }
+    # os-frr 2.0 moved passive interfaces from the general page onto each OSPF
+    # interface (interfaces.interface.passive, migration M1_1_5), so the API no
+    # longer returns 'passiveinterfaces'. Optional keeps the read working on
+    # both versions; check() refuses the setting where it no longer exists.
+    FIELDS_OPTIONAL = ['passive_ints']
     FIELDS_TYPING = {
         'bool': ['enabled', 'carp', 'originate', 'originate_always'],
         'list': ['passive_ints'],
@@ -39,3 +44,11 @@ class General(GeneralModule):
 
     def __init__(self, module: AnsibleModule, result: dict, session: Session = None):
         GeneralModule.__init__(self=self, m=module, r=result, s=session)
+
+    def check(self) -> None:
+        self._base_check()
+
+        if 'passive_ints' not in self.settings and len(self.p['passive_ints'] or []) > 0:
+            self.m.fail_json(
+                'os-frr 2.0 moved passive interfaces to frr_ospf_interface passive'
+            )

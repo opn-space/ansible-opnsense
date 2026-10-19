@@ -29,6 +29,9 @@ class Network(BaseModule):
         'prefix_list_in': 'linkedPrefixlistIn',
         'prefix_list_out': 'linkedPrefixlistOut',
     }
+    # os-frr 2.0 moved area ranges and the prefix-list filters from the network
+    # onto the area (ospf.areas.area: ranges, linkedPrefixlistIn/Out).
+    FIELDS_OPTIONAL = ['area_range', 'prefix_list_in', 'prefix_list_out']
     FIELDS_TYPING = {
         'bool': ['enabled'],
         'select': ['prefix_list_in', 'prefix_list_out'],
@@ -39,12 +42,16 @@ class Network(BaseModule):
     EXIST_ATTR = 'net'
     SEARCH_ADDITIONAL = {
         'existing_prefixes': 'ospf.prefixlists.prefixlist',
+        # the whole page, read for its shape: os-frr 2.0 has no 'passiveinterfaces'
+        'ospf_settings': 'ospf',
     }
+    FIELDS_MOVED_TO_AREA = ['area_range', 'prefix_list_in', 'prefix_list_out']
 
     def __init__(self, module: AnsibleModule, result: dict, session: Session = None, fail: dict = None):
         BaseModule.__init__(self=self, m=module, r=result, s=session, f=fail)
         self.net = {}
         self.existing_prefixes = None
+        self.ospf_settings = None
 
     def check(self) -> None:
         if self.p['state'] == 'present':
@@ -61,6 +68,17 @@ class Network(BaseModule):
 
         self._base_check()
 
+        if self.p['state'] == 'present' and self.ospf_settings is not None and \
+                'passiveinterfaces' not in self.ospf_settings:
+            moved = [f for f in self.FIELDS_MOVED_TO_AREA if not is_unset(self.p[f])]
+            if len(moved) > 0:
+                self.m.fail_json(
+                    f"os-frr 2.0 moved {', '.join(moved)} from the OSPF network to the area; "
+                    'declare it with frr_ospf_area'
+                )
+
+            return
+
         if self.p['state'] == 'present':
             self.find_single_link(
                 field='prefix_list_in',
@@ -75,11 +93,11 @@ class Network(BaseModule):
         existing = []
 
         for entry in self._base_get_existing():
-            if entry['prefix_list_in'] not in [None, ''] and \
+            if entry.get('prefix_list_in') not in [None, ''] and \
                     entry['prefix_list_in'] in self.existing_prefixes:
                 entry['prefix_list_in'] = self.existing_prefixes[entry['prefix_list_in']]['name']
 
-            if entry['prefix_list_out'] not in [None, ''] and \
+            if entry.get('prefix_list_out') not in [None, ''] and \
                     entry['prefix_list_out'] in self.existing_prefixes:
                 entry['prefix_list_out'] = self.existing_prefixes[entry['prefix_list_out']]['name']
 

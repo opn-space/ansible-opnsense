@@ -51,6 +51,8 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
 
 #### oxlorg.opnsense.frr_ospf_general
 
+**os-frr 2.0:** `passive_ints` no longer exists on this page; passive interfaces are set per interface (`frr_ospf_interface` `passive`). Setting `passive_ints` against os-frr 2.0 fails the module; os-frr 1.x is unchanged.
+
 | Parameter        | Type    | Required | Default value | Aliases                                             | Comment                                                                                                                                                                                                                                                        |
 |:-----------------|:--------|:---------|:--------------|:----------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | carp             | boolean | false    | false         | carp_demote                                         | Register CARP status monitor, when no neighbors are found, consider this node less attractive. This feature needs syslog enabled using "Debugging" logging to catch all relevant status events. This option is not compatible with "Enable CARP Failover"      |
@@ -64,6 +66,8 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
 | enabled          | boolean | false    | true                 | -       | En- or disable the service                                                                                                                                                                                                                                     |
 
 #### oxlorg.opnsense.frr_ospf_network
+
+**os-frr 2.0:** `area_range`, `prefix_list_in` and `prefix_list_out` moved from the network to the area (`frr_ospf_area`). Setting them against os-frr 2.0 fails the module; os-frr 1.x is unchanged.
 
 | Parameter    | Type    | Required                           | Default value  | Aliases                              | Comment                                                                                                                                                                                                                                                          |
 |:-------------|:--------|:-----------------------------------|:---------------|:-------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -141,6 +145,8 @@ For basic parameters see: [Basics](https://ansible-opnsense.oxl.app/usage/2_basi
 | enabled          | boolean | false    | true                 | -       | En- or disable the service                                                                                                                                                                                                                                     |
 
 #### oxlorg.opnsense.frr_ospf3_network
+
+**os-frr 2.0:** OSPFv3 router-level networks were removed; use `frr_ospf3_interface`. The module fails against os-frr 2.0; os-frr 1.x is unchanged.
 
 | Parameter    | Type    | Required                           | Default value  | Aliases                              | Comment                                                                                                                                                                                                                                                          |
 |:-------------|:--------|:-----------------------------------|:---------------|:-------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
