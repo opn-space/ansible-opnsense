@@ -124,6 +124,10 @@ action_groups:
     - oxlorg.opnsense.snapshot
   crowdsec:
     - oxlorg.opnsense.crowdsec_general
+  trust:
+    - oxlorg.opnsense.trust_ca
+    - oxlorg.opnsense.trust_cert
+    - oxlorg.opnsense.trust_cert_multi
   ids:
     - oxlorg.opnsense.ids_action
     - oxlorg.opnsense.ids_general
@@ -252,6 +256,7 @@ action_groups:
           - oxlorg.opnsense.nut_diagnostics
           - oxlorg.opnsense.radvd
           - oxlorg.opnsense.crowdsec
+          - oxlorg.opnsense.trust
 
 plugin_routing:
   modules:
