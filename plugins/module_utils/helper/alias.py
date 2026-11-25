@@ -27,7 +27,9 @@ def validate_values(cnf: dict, error_func: Callable, existing_entries: dict) -> 
         ]
 
     for value in cnf['content']:
-        if value in existing_entries:
+        # built-ins (__lan_network, ...) are valid references although
+        # get_existing() filters them out of existing_entries
+        if value in existing_entries or builtin_alias(value):
             continue
 
         error = f"Value '{value}' is invalid for type '{v_type}'!"

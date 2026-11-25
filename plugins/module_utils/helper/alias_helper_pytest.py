@@ -27,6 +27,8 @@ import pytest
     ('network', 'alias1', True),
     ('networkgroup', 'alias1', True),
     ('networkgroup', 'noalias', False),
+    ('network', '__lan_network', True),
+    ('networkgroup', '__opt1_network', True),
     ('mac', '00:11:22:33:44:55', True),
     ('mac', '00:11:22', True),
     ('mac', 'aA:bB:cC:dD:eE:fF', True),
