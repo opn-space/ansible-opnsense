@@ -1,0 +1,71 @@
+# Every argument defaults to None = not declared: the modules post only what is
+# declared, so the appliance keeps every other value (see helper/declared.py).
+# Names are the model's own (security/clamav, www/c-icap), except local_squid.
+
+CLAMAV_GENERAL_MOD_ARGS = dict(
+    enabled=dict(type='bool', required=False, default=None),
+    fc_enabled=dict(type='bool', required=False, default=None),
+    enabletcp=dict(type='bool', required=False, default=None),
+    followdirsym=dict(type='bool', required=False, default=None),
+    followfilesym=dict(type='bool', required=False, default=None),
+    scanpe=dict(type='bool', required=False, default=None),
+    scanelf=dict(type='bool', required=False, default=None),
+    detectbroken=dict(type='bool', required=False, default=None),
+    scanole2=dict(type='bool', required=False, default=None),
+    ole2blockmarcros=dict(type='bool', required=False, default=None),
+    scanpdf=dict(type='bool', required=False, default=None),
+    scanswf=dict(type='bool', required=False, default=None),
+    scanxmldocs=dict(type='bool', required=False, default=None),
+    scanhwp3=dict(type='bool', required=False, default=None),
+    scanmailfiles=dict(type='bool', required=False, default=None),
+    scanhtml=dict(type='bool', required=False, default=None),
+    scanarchive=dict(type='bool', required=False, default=None),
+    arcblockenc=dict(type='bool', required=False, default=None),
+    logverbose=dict(type='bool', required=False, default=None),
+    fc_logverbose=dict(type='bool', required=False, default=None),
+    fc_malwareexpert=dict(type='bool', required=False, default=None),
+    fc_blurl=dict(type='bool', required=False, default=None),
+    fc_jurlbla=dict(type='bool', required=False, default=None),
+    fc_bofhland=dict(type='bool', required=False, default=None),
+    maxthreads=dict(type='int', required=False, default=None),
+    maxqueue=dict(type='int', required=False, default=None),
+    idletimeout=dict(type='int', required=False, default=None),
+    maxdirrecursion=dict(type='int', required=False, default=None),
+    maxrecursion=dict(type='int', required=False, default=None),
+    maxfiles=dict(type='int', required=False, default=None),
+    disablecache=dict(type='str', required=False, default=None),
+    maxscansize=dict(type='str', required=False, default=None),
+    maxfilesize=dict(type='str', required=False, default=None),
+    fc_databasemirror=dict(type='str', required=False, default=None),
+    fc_timeout=dict(type='str', required=False, default=None),
+)
+
+CICAP_GENERAL_MOD_ARGS = dict(
+    enabled=dict(type='bool', required=False, default=None),
+    enable_accesslog=dict(type='bool', required=False, default=None),
+    local_squid=dict(type='bool', required=False, default=None),
+    timeout=dict(type='int', required=False, default=None),
+    maxkeepaliverequests=dict(type='int', required=False, default=None),
+    keepalivetimeout=dict(type='int', required=False, default=None),
+    startservers=dict(type='int', required=False, default=None),
+    maxservers=dict(type='int', required=False, default=None),
+    minsparethreads=dict(type='int', required=False, default=None),
+    maxsparethreads=dict(type='int', required=False, default=None),
+    threadsperchild=dict(type='int', required=False, default=None),
+    maxrequestsperchild=dict(type='int', required=False, default=None),
+    listenaddress=dict(type='str', required=False, default=None),
+    serveradmin=dict(type='str', required=False, default=None),
+    servername=dict(type='str', required=False, default=None),
+)
+
+CICAP_ANTIVIRUS_MOD_ARGS = dict(
+    enable_clamav=dict(type='bool', required=False, default=None),
+    allow204responses=dict(type='bool', required=False, default=None),
+    passonerror=dict(type='bool', required=False, default=None),
+    sendpercentdata=dict(type='int', required=False, default=None),
+    startsendpercentdataafter=dict(type='str', required=False, default=None),
+    maxobjectsize=dict(type='str', required=False, default=None),
+    scanfiletypes=dict(type='list', elements='str', required=False, default=None, choices=[
+        'TEXT', 'DATA', 'EXECUTABLE', 'ARCHIVE', 'GIF', 'JPEG', 'MSOFFICE',
+    ]),
+)

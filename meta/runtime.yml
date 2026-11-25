@@ -124,6 +124,11 @@ action_groups:
     - oxlorg.opnsense.snapshot
   crowdsec:
     - oxlorg.opnsense.crowdsec_general
+  clamav:
+    - oxlorg.opnsense.clamav_general
+  cicap:
+    - oxlorg.opnsense.cicap_general
+    - oxlorg.opnsense.cicap_antivirus
   trust:
     - oxlorg.opnsense.trust_ca
     - oxlorg.opnsense.trust_cert
@@ -257,6 +262,8 @@ action_groups:
           - oxlorg.opnsense.radvd
           - oxlorg.opnsense.crowdsec
           - oxlorg.opnsense.trust
+          - oxlorg.opnsense.clamav
+          - oxlorg.opnsense.cicap
 
 plugin_routing:
   modules:
