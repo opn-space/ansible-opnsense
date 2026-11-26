@@ -59,13 +59,23 @@ def get_selected_opt_list(data: (dict, list)) -> (str, None):
     return get_selected_value(data)
 
 
-def get_selected_opt_list_idx(data: list) -> int:
+def get_selected_opt_list_idx(data: (dict, list)) -> (int, str):
     """
         Finds the integer index of the first selected item in a list.
+
+        A dict (keyed by the option's value, as older releases return the same
+        field) yields the selected key, and a value that is already neither -
+        the function re-applied - is returned unchanged.
 
         :param data: A list of item dictionaries.
         :return: The index of the selected item, defaulting to 0.
     """
+    if isinstance(data, dict):
+        return get_selected(data)
+
+    if not isinstance(data, list):
+        return data
+
     idx = 0
     for values in data:
         if is_true(values['selected']):
