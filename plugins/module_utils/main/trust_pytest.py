@@ -115,3 +115,21 @@ def test_absent_needs_no_crt(mocker):
     e.check()
     assert e.exists
     assert e.call_cnf['params'] == [UUID]
+
+
+def test_multi_process_without_reload_argument(mocker):
+    # trust_cert_multi declares no `reload`: a changed run must not KeyError
+    from ansible_collections.oxlorg.opnsense.plugins.module_utils.base.multi import MultiModule
+    mm = MultiModule.__new__(MultiModule)
+    mm.p = {'multi': [{'description': 'x'}], 'multi_purge': []}
+    mm.r = {'changed': True}
+    mm.cache_existing = False
+    mm.meta_entry = mocker.MagicMock()
+    mm.s = mocker.MagicMock()
+    mm.m = mocker.MagicMock()
+    mm._is_multi_purge = lambda: False
+    mm._is_multi_crud = lambda: True
+    mm._create_update = lambda: None
+    mm._purge_unconfigured = lambda: None
+    mm.process()
+    mm.meta_entry.reload.assert_not_called()

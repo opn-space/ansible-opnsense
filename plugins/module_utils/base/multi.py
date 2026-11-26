@@ -306,7 +306,9 @@ class MultiModule:
         else:
             self.m.fail_json('Got invalid Mass-Management arguments!')
 
-        if self.r['changed'] and self.p['reload']:
+        # A multi module whose objects apply themselves (trust_cert_multi: an
+        # import runs `system trust configure`) declares no reload argument.
+        if self.r['changed'] and self.p.get('reload', False):
             self.meta_entry.reload()
 
         self.s.close()
